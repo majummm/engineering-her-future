@@ -7,15 +7,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --pink: #F4728A;
-    --pink-light: #FFB3C1;
-    --pink-pale: #FFF0F3;
-    --green: #5BAD72;
-    --green-dark: #3D8A54;
-    --green-light: #A8D5B4;
-    --green-pale: #F0FAF3;
-    --cream: #FDFAF6;
-    --dark: #1E1E1E;
+    --pink: #FF1F78;
+    --pink-light: #FF7AB0;
+    --pink-pale: #FFF0F6;
+    --green: #8CC63F;
+    --green-dark: #6A9E28;
+    --green-light: #B8E06A;
+    --green-pale: #F2FAE8;
+    --cream: #FAFAFA;
+    --dark: #111111;
     --gray: #6B7280;
     --gray-light: #F3F4F6;
     --white: #FFFFFF;
@@ -24,15 +24,39 @@
     --font-ui: 'Space Grotesk', sans-serif;
     --radius: 16px;
     --radius-sm: 8px;
+    /* tema claro */
+    --bg: #FAFAFA;
+    --bg-nav: rgba(250,250,250,0.92);
+    --bg-card: #FFFFFF;
+    --text: #111111;
+    --text-muted: #6B7280;
+    --border: rgba(255,31,120,0.12);
+  }
+
+  [data-theme="dark"] {
+    --bg: #0D0D0D;
+    --bg-nav: rgba(13,13,13,0.92);
+    --bg-card: #1A1A1A;
+    --text: #F0F0F0;
+    --text-muted: #9CA3AF;
+    --cream: #0D0D0D;
+    --dark: #F0F0F0;
+    --gray: #9CA3AF;
+    --gray-light: #1F1F1F;
+    --white: #1A1A1A;
+    --pink-pale: #1A0A10;
+    --green-pale: #0A1200;
+    --border: rgba(140,198,63,0.15);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
     font-family: var(--font-body);
-    color: var(--dark);
-    background: var(--cream);
+    color: var(--text);
+    background: var(--bg);
     overflow-x: hidden;
+    transition: background 0.3s, color 0.3s;
   }
 
   /* ===== NAV ===== */
@@ -40,9 +64,9 @@
     position: fixed;
     top: 0; left: 0; right: 0;
     z-index: 100;
-    background: rgba(253,250,246,0.92);
+    background: var(--bg-nav);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(244,114,138,0.15);
+    border-bottom: 1px solid var(--border);
     padding: 0 40px;
     height: 64px;
     display: flex;
@@ -69,7 +93,7 @@
     font-family: var(--font-ui);
     font-size: 0.82rem;
     font-weight: 500;
-    color: var(--dark);
+    color: var(--text);
     text-decoration: none;
     transition: color 0.2s;
   }
@@ -79,13 +103,27 @@
     background: none;
     border: none;
     cursor: pointer;
-    color: var(--gray);
+    color: var(--text-muted);
     font-size: 0.75rem;
     font-family: var(--font-ui);
     opacity: 0.5;
     transition: opacity 0.2s;
   }
   .nav-login-btn:hover { opacity: 1; }
+
+  .theme-toggle {
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--text);
+    font-family: var(--font-ui);
+    transition: all 0.2s;
+    margin-left: 8px;
+  }
+  .theme-toggle:hover { border-color: var(--green); color: var(--green); }
 
   /* ===== PAGE TABS ===== */
   .page-hidden { display: none !important; }
@@ -333,10 +371,12 @@
 
   .historia-text {
     font-size: 1rem;
-    line-height: 1.9;
+    line-height: 1.7;
     color: var(--gray);
     margin-bottom: 30px;
-    white-space: pre-wrap;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
   }
 
   .historia-gallery {
@@ -1139,8 +1179,11 @@
     <li><a href="#materiais" class="nav-tab">Materiais</a></li>
     <li><a href="#contato" class="nav-tab">Contato</a></li>
   </ul>
-  <button class="nav-login-btn" onclick="openLogin()">● entrar</button>
-  <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()">🌙</button>
+    <button class="nav-login-btn" onclick="openLogin()">● entrar</button>
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+  </div>
 </nav>
 
 <!-- HERO -->
@@ -2443,6 +2486,25 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     showPage(href.substring(1));
   });
 });
+
+// ============ TEMA ============
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const newTheme = isDark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  document.getElementById('theme-btn').textContent = newTheme === 'dark' ? '☀️' : '🌙';
+  localStorage.setItem('ehf_theme', newTheme);
+}
+
+// Aplica tema salvo
+(function() {
+  const saved = localStorage.getItem('ehf_theme');
+  if(saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    const btn = document.getElementById('theme-btn');
+    if(btn) btn.textContent = '☀️';
+  }
+})();
 
 // ============ INIT ============
 loadFromSupabase().then(() => {
