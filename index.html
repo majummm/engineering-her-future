@@ -1834,15 +1834,46 @@ let state = {
   _newNewsImg: null,
 };
 
-// Load from localStorage
+// ============ SUPABASE ============
+const SUPA_URL = 'https://upixwxwbfdvqkckqucjc.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwaXh3eHdiZmR2cWtja3F1Y2pjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5OTYzMzIsImV4cCI6MjA5NzU3MjMzMn0.jo-OJnDKHTAP9kalLaoMD1h5T4QrLcYfaAsNnE0kr5k';
+
+async function loadFromSupabase() {
+  try {
+    const res = await fetch(`${SUPA_URL}/rest/v1/ehf_state?id=eq.1`, {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
+    });
+    const rows = await res.json();
+    if(rows && rows[0] && rows[0].data && Object.keys(rows[0].data).length > 0) {
+      state = { ...state, ...rows[0].data };
+    }
+  } catch(e) { console.log('Supabase load error:', e); }
+}
+
+async function saveState() {
+  try {
+    // salva local também como backup
+    localStorage.setItem('ehf_state', JSON.stringify(state));
+    // salva no Supabase
+    await fetch(`${SUPA_URL}/rest/v1/ehf_state?id=eq.1`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': `Bearer ${SUPA_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ data: state })
+    });
+  } catch(e) { console.log('Supabase save error:', e); }
+}
+
+// Load from localStorage como fallback rápido enquanto Supabase carrega
 try {
   const saved = localStorage.getItem('ehf_state');
   if(saved) { const parsed = JSON.parse(saved); state = {...state, ...parsed}; }
 } catch(e){}
 
-function saveState() {
-  try { localStorage.setItem('ehf_state', JSON.stringify(state)); } catch(e){}
-}
 
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -2414,8 +2445,10 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 });
 
 // ============ INIT ============
-renderSite();
-showPage('home');
+loadFromSupabase().then(() => {
+  renderSite();
+  showPage('home');
+});
 
 </script>
 </body>
